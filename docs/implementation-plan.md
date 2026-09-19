@@ -18,8 +18,8 @@
 - [x] Global JWT authentication guard
 - [x] Role-based access control
 - [x] Gift ownership and transition authorization
-- [ ] Rate limiting and abuse controls
-- [ ] Audit log persistence
+- [x] Rate limiting and brute-force controls
+- [x] Audit log persistence
 
 ## Phase 3 — verification and operations
 - [x] Verification status persistence
@@ -39,5 +39,7 @@
 - [ ] Backup/restore drills
 - [ ] Deployment environments and secret management
 - [ ] Database migration runner for existing environments
+- [x] Web auth proxy with HttpOnly cookies
+- [x] Live creator discovery and creator profile management
 
 The repository remains intentionally below the production gate until real KYC, encrypted identity storage, operational notifications, testing and deployment controls are complete.
