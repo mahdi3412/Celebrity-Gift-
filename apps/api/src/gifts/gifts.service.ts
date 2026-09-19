@@ -27,8 +27,8 @@ export class GiftsService{
   const gift=result.rows[0];
   await this.notifications.create({userId:gift.creatorId,type:"GIFT_REQUEST",title:"درخواست هدیه جدید",body:"یک درخواست هدیه برای شما ثبت شده است.",entityType:"gift",entityId:gift.id});
   const metrics=await this.db.query<{uniqueFans:number,totalRequests:number}>("SELECT COUNT(DISTINCT fan_id)::int AS \"uniqueFans\",COUNT(*)::int AS \"totalRequests\" FROM gifts WHERE creator_id=$1",[gift.creatorId]);
-  const config=await this.thresholds.get();const uniqueFans=metrics.rows[0]?.uniqueFans??0;
-  if(uniqueFans===config.publicInterest||uniqueFans===config.strongInvite){await this.notifications.create({userId:gift.creatorId,type:"THRESHOLD_REACHED",title:"رسیدن به آستانه علاقه",body:"تعداد طرفداران یکتای علاقه‌مند به شما به یکی از آستانه‌های تعریف‌شده رسید.",entityType:"creator",entityId:gift.creatorId});}
+  const thresholdsConfig=await this.thresholds.get();const uniqueFans=metrics.rows[0]?.uniqueFans??0;
+  if(uniqueFans===thresholdsConfig.publicInterest||uniqueFans===thresholdsConfig.strongInvite{await this.notifications.create({userId:gift.creatorId,type:"THRESHOLD_REACHED",title:"رسیدن به آستانه علاقه",body:"تعداد طرفداران یکتای علاقه‌مند به شما به یکی از آستانه‌های تعریف‌شده رسید.",entityType:"creator",entityId:gift.creatorId});}
   return {...gift,qrPayload:"celebrity-gift://"+gift.giftCode};
  }
  async getForUser(id:string,userId:string,role:Role){
@@ -45,7 +45,7 @@ export class GiftsService{
   const allowed=role==="admin"||(role==="station_staff"&&stationStatuses.includes(status))||(role==="creator"&&gift.creatorId===userId&&creatorStatuses.includes(status));
   if(!allowed)throw new ForbiddenException("Status transition not allowed");
   if(!transitions[gift.status].includes(status))throw new BadRequestException("Invalid transition: "+gift.status+" -> "+status);
-  const updated=await this.db.query<Gift>("UPDATE gifts SET status=$1,updated_at=now() WHERE id=$2 RETURNING id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\"",[status,gift.id]);
+  const updated=await this.db.query<Gift>("UPDATE gifts SET status=$1,station_received_at=CASE WHEN $1='RECEIVED_AT_STATION' AND station_received_at IS NULL THEN now() ELSE station_received_at END,updated_at=now() WHERE id=$2 RETURNING id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\"",[status,gift.id]);
   const nextGift=updated.rows[0];await this.notifications.create({userId:nextGift.creatorId,type:"GIFT_STATUS",title:"به‌روزرسانی وضعیت هدیه",body:"وضعیت هدیه به "+nextGift.status+" تغییر کرد.",entityType:"gift",entityId:nextGift.id});if(nextGift.fanId!==nextGift.creatorId){await this.notifications.create({userId:nextGift.fanId,type:"GIFT_STATUS",title:"به‌روزرسانی هدیه",body:"وضعیت هدیه شما به "+nextGift.status+" تغییر کرد.",entityType:"gift",entityId:nextGift.id});}return nextGift;
  }
  async get(id:string){const r=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id::text=$1 OR gift_code=$1 LIMIT 1",[id]);return r.rows[0];}
