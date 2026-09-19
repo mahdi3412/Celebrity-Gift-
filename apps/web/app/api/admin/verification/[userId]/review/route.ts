@@ -1,0 +1,4 @@
+import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {API_BASE,AUTH_COOKIE} from "../../../../../lib/auth-proxy";
+export async function POST(request:Request,{params}:{params:Promise<{userId:string}>}){const access=(await cookies()).get(AUTH_COOKIE.access)?.value;if(!access)return NextResponse.json({message:"Authentication required"},{status:401});const {userId}=await params;const r=await fetch(API_BASE+"/api/verification/review/"+encodeURIComponent(userId),{method:"POST",headers:{authorization:"Bearer "+access,"content-type":"application/json"},body:JSON.stringify(await request.json()),cache:"no-store"});return NextResponse.json(await r.json(),{status:r.status});}
