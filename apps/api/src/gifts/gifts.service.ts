@@ -30,14 +30,14 @@ export class GiftsService{
   const metrics=await this.db.query<{uniqueFans:number,totalRequests:number}>("SELECT COUNT(DISTINCT fan_id)::int AS \"uniqueFans\",COUNT(*)::int AS \"totalRequests\" FROM gifts WHERE creator_id=$1",[gift.creatorId]);
   const thresholdsConfig=await this.thresholds.get();const uniqueFans=metrics.rows[0]?.uniqueFans??0;
   if(uniqueFans===thresholdsConfig.publicInterest||uniqueFans===thresholdsConfig.strongInvite){await this.notifications.create({userId:gift.creatorId,type:"THRESHOLD_REACHED",title:"رسیدن به آستانه علاقه",body:"تعداد طرفداران یکتای علاقه‌مند به شما به یکی از آستانه‌های تعریف‌شده رسید.",entityType:"creator",entityId:gift.creatorId});}
-  return {...this.sanitizeForUser(gift,userId,role),qrPayload:"celebrity-gift://"+gift.giftCode};
+  return {...gift,qrPayload:"celebrity-gift://"+gift.giftCode};
  }
- async listForUser(userId:string,role:Role){const where=role==="admin"||role==="station_staff"?"":" WHERE fan_id=$1 OR creator_id=$1";const values=where?[userId]:[];const r=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\",food_expiry_at AS \"foodExpiryAt\",station_received_at AS \"stationReceivedAt\",station_inspection_status AS \"stationInspectionStatus\",station_notes AS \"stationNotes\" FROM gifts"+where+" ORDER BY created_at DESC LIMIT 100",values);return r.rows;}
+ async listForUser(userId:string,role:Role){const where=role==="admin"||role==="station_staff"?"":" WHERE fan_id=$1 OR creator_id=$1";const values=where?[userId]:[];const r=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\",food_expiry_at AS \"foodExpiryAt\",station_received_at AS \"stationReceivedAt\",station_inspection_status AS \"stationInspectionStatus\",station_notes AS \"stationNotes\" FROM gifts"+where+" ORDER BY created_at DESC LIMIT 100",values);return r.rows.map((gift:any)=>this.sanitizeForUser(gift,userId,role));}
  async getForUser(id:string,userId:string,role:Role){
   const result=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\",food_expiry_at AS \"foodExpiryAt\",station_received_at AS \"stationReceivedAt\",station_inspection_status AS \"stationInspectionStatus\",station_notes AS \"stationNotes\" FROM gifts WHERE id::text=$1 OR gift_code=$1 LIMIT 1",[id]);
   const gift=result.rows[0];if(!gift)return undefined;
   if(role!=="admin"&&role!=="station_staff"&&gift.fanId!==userId&&gift.creatorId!==userId)throw new ForbiddenException("Gift access denied");
-  return {...gift,qrPayload:"celebrity-gift://"+gift.giftCode};
+  return {...this.sanitizeForUser(gift,userId,role),qrPayload:"celebrity-gift://"+gift.giftCode};
  }
  async transitionForUser(id:string,status:GiftStatus,userId:string,role:Role){
   const result=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id::text=$1 OR gift_code=$1 LIMIT 1",[id]);
