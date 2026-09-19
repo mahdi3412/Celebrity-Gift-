@@ -1,2 +1,3 @@
 import {Controller,Get} from "@nestjs/common";
-@Controller("health") export class HealthController{@Get() check(){return {status:"ok",service:"celebrity-gift-api",timestamp:new Date().toISOString()};}}
+import {Public} from "./auth/public.decorator";
+@Controller("health") export class HealthController{@Public()@Get() check(){return {status:"ok",service:"celebrity-gift-api",timestamp:new Date().toISOString()};}}
