@@ -1,0 +1,4 @@
+import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {API_BASE,AUTH_COOKIE} from "../../../../../lib/auth-proxy";
+export async function PATCH(_request:Request,{params}:{params:Promise<{id:string}>}){const access=(await cookies()).get(AUTH_COOKIE.access)?.value;if(!access)return NextResponse.json({message:"Authentication required"},{status:401});const {id}=await params;const r=await fetch(API_BASE+"/api/admin/creator-invitations/"+encodeURIComponent(id)+"/sent",{method:"PATCH",headers:{authorization:"Bearer "+access},cache:"no-store"});return NextResponse.json(await r.json(),{status:r.status});}
