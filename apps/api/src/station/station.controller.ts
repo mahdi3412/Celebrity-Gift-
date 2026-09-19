@@ -14,4 +14,5 @@ export class StationController{
  @Patch(":giftId/status") status(@Req() req:AuthedRequest,@Param("giftId") giftId:string,@Body() dto:StatusDto){return this.service.updateStatus(giftId,dto.status,req.user.sub);}
  @Patch(":giftId/inspection") inspection(@Req() req:AuthedRequest,@Param("giftId") giftId:string,@Body() dto:InspectionDto){return this.service.inspect(giftId,req.user.sub,dto.status,dto.notes);}
  @Get("food-alerts/list") foodAlerts(){return this.service.foodAlerts();}
+ @Get("destination/:giftId") destination(@Req() req:AuthedRequest,@Param("giftId") giftId:string){return this.service.destination(giftId,req.user.sub);}
 }
