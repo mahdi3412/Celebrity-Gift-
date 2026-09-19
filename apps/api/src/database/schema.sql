@@ -57,3 +57,39 @@ CREATE TABLE IF NOT EXISTS notifications (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications(user_id,read_at,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS verification_artifacts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  verification_id UUID NOT NULL REFERENCES verifications(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL CHECK (kind IN ('IDENTITY_DOCUMENT','SELFIE')),
+  document_type TEXT,
+  storage_key TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  bytes INTEGER NOT NULL CHECK (bytes > 0),
+  mime_type TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_verification_artifacts_verification ON verification_artifacts(verification_id);
+
+ALTER TABLE verifications ADD COLUMN IF NOT EXISTS document_type TEXT;
+ALTER TABLE verifications ADD COLUMN IF NOT EXISTS liveness_passed BOOLEAN;
+ALTER TABLE verifications ADD COLUMN IF NOT EXISTS face_match_passed BOOLEAN;
+ALTER TABLE verifications ADD COLUMN IF NOT EXISTS provider_score NUMERIC(6,3);
+
+CREATE TYPE station_inspection_status AS ENUM ('PENDING','CLEAR','DAMAGED','SUSPICIOUS','REQUIRES_REPACK');
+ALTER TABLE gifts ADD COLUMN IF NOT EXISTS food_expiry_at TIMESTAMPTZ;
+ALTER TABLE gifts ADD COLUMN IF NOT EXISTS station_received_at TIMESTAMPTZ;
+ALTER TABLE gifts ADD COLUMN IF NOT EXISTS station_inspection_status station_inspection_status NOT NULL DEFAULT 'PENDING';
+ALTER TABLE gifts ADD COLUMN IF NOT EXISTS station_notes TEXT;
+
+CREATE TABLE IF NOT EXISTS courier_quotes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  gift_id UUID REFERENCES gifts(id) ON DELETE SET NULL,
+  fan_to_station_inr INTEGER NOT NULL CHECK (fan_to_station_inr >= 0),
+  station_to_creator_inr INTEGER NOT NULL CHECK (station_to_creator_inr >= 0),
+  provider TEXT NOT NULL,
+  destination_pincode TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_courier_quotes_gift ON courier_quotes(gift_id,created_at DESC);
