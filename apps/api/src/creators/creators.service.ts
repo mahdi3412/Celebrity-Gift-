@@ -1,13 +1,15 @@
 import {ConflictException,Injectable,NotFoundException} from "@nestjs/common";
 import {DatabaseService} from "../database/database.service";
+import {ThresholdsService} from "../thresholds/thresholds.service";
 export type Creator={id:string;displayName:string;handle:string;category:string|null;uniqueFans:number;totalRequests:number};
 @Injectable()
 export class CreatorsService{
- constructor(private readonly db:DatabaseService){}
+ constructor(private readonly db:DatabaseService,private readonly thresholds:ThresholdsService){}
  async findAll(search=""){
   const q=search.trim();
   const result=await this.db.query<Creator>("SELECT cp.user_id AS id,cp.display_name AS \"displayName\",cp.handle,cp.category,COUNT(DISTINCT g.fan_id)::int AS \"uniqueFans\",COUNT(g.id)::int AS \"totalRequests\" FROM creator_profiles cp JOIN users u ON u.id=cp.user_id LEFT JOIN gifts g ON g.creator_id=cp.user_id WHERE u.role='creator' AND cp.is_public=true AND ($1='' OR cp.display_name ILIKE '%'||$1||'%' OR cp.handle ILIKE '%'||$1||'%') GROUP BY cp.user_id,cp.display_name,cp.handle,cp.category ORDER BY \"uniqueFans\" DESC,cp.display_name ASC LIMIT 50",[q]);
-  return result.rows.map(c=>this.publicView(c));
+  const config=await this.thresholds.get();
+  return result.rows.map(c=>this.publicView(c,config.publicInterest,config.strongInvite));
  }
  async findOne(idOrHandle:string){
   const normalized=idOrHandle.startsWith("@")?idOrHandle.slice(1):idOrHandle;
