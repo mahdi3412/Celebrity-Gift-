@@ -1,0 +1,1 @@
+{"name":"@celebrity-gift/cms","private":true,"scripts":{"develop":"strapi develop","start":"strapi start","build":"strapi build"},"dependencies":{"@strapi/strapi":"^5.20.0","better-sqlite3":"^11.7.0"}}
