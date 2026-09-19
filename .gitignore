@@ -10,3 +10,6 @@ coverage/
 .turbo/
 uploads/
 data/
+
+.private/
+apps/api/.private/
