@@ -6,7 +6,8 @@ import {DatabaseService} from "../database/database.service";
 import {Role} from "./auth.constants";
 import {AuditService} from "../audit/audit.service";
 type RefreshPayload={sub:string,role:Role,type:"refresh",jti:string,exp?:number};
-type MeRow={id:string,email:string,role:Role,display_name:string|null,creator_display_name:string|null,handle:string|null};
+type MeRow={id:string,email:string,role:Role,status:string,display_name:string|null,creator_display_name:string|null,handle:string|null};
+type LoginRow={id:string,password_hash:string,role:Role,status:string};
 @Injectable()
 export class AuthService{
  constructor(private readonly db:DatabaseService,private readonly jwt:JwtService,private readonly audit:AuditService){}
