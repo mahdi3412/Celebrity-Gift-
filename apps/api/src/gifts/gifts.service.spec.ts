@@ -1,7 +1,7 @@
 import {BadRequestException,ForbiddenException} from "@nestjs/common";
 import {GiftsService} from "./gifts.service";
 
-describe("GiftsService",()=>{const db={query:jest.fn()};const notifications={create:jest.fn()};const thresholds={get:jest.fn()};const service=new GiftsService(db as any,notifications as any,thresholds as any);
+describe("GiftsService",()=>{const db={query:jest.fn()};const notifications={create:jest.fn()};const thresholds={get:jest.fn()};const settings={get:jest.fn().mockResolvedValue({giftCategories:["book"],verificationDocumentTypes:[],verificationMaxAttempts:3,verificationAttemptWindowMinutes:10,kycRetentionDays:30});}const service=new GiftsService(db as any,notifications as any,thresholds as any,settings as any);
 beforeEach(()=>{db.query.mockReset();notifications.create.mockReset();thresholds.get.mockReset();});
 it("rejects a gift for an unverified fan",async()=>{db.query.mockResolvedValueOnce({rowCount:1}).mockResolvedValueOnce({rowCount:1}).mockResolvedValueOnce({rowCount:0});await expect(service.create({fanId:"fan",creatorId:"creator",category:"book"})).rejects.toThrow(ForbiddenException);});
 it("rejects food without an expiry date",async()=>{await expect(service.create({fanId:"fan",creatorId:"creator",category:"food",food:true})).rejects.toThrow(BadRequestException);});
