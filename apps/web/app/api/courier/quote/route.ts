@@ -1,0 +1,4 @@
+import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {API_BASE,AUTH_COOKIE} from "../../../../lib/auth-proxy";
+export async function GET(request:Request){const access=(await cookies()).get(AUTH_COOKIE.access)?.value;if(!access)return NextResponse.json({message:"Authentication required"},{status:401});const url=new URL(request.url);const params=new URLSearchParams();for(const k of ["destinationPincode","giftId"]){const v=url.searchParams.get(k);if(v)params.set(k,v);}const upstream=await fetch(API_BASE+"/api/courier/quote?"+params.toString(),{headers:{authorization:"Bearer "+access},cache:"no-store"});const data=await upstream.json();return NextResponse.json(data,{status:upstream.status});}
