@@ -135,6 +135,7 @@ CREATE INDEX IF NOT EXISTS idx_creator_activity_target_created ON creator_activi
 CREATE TABLE IF NOT EXISTS creator_private_addresses (
   creator_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   encrypted_address TEXT NOT NULL,
+  encrypted_pincode TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
