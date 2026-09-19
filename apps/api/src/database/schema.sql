@@ -7,3 +7,13 @@ CREATE TABLE IF NOT EXISTS verifications (id UUID PRIMARY KEY DEFAULT gen_random
 CREATE TABLE IF NOT EXISTS gifts (id UUID PRIMARY KEY DEFAULT gen_random_uuid(),gift_code TEXT NOT NULL UNIQUE,fan_id UUID NOT NULL REFERENCES users(id),creator_id UUID NOT NULL REFERENCES users(id),category TEXT NOT NULL,note_declared BOOLEAN NOT NULL DEFAULT false,food_declared BOOLEAN NOT NULL DEFAULT false,fragile_declared BOOLEAN NOT NULL DEFAULT false,status gift_status NOT NULL DEFAULT 'REQUESTED',created_at TIMESTAMPTZ NOT NULL DEFAULT now(),updated_at TIMESTAMPTZ NOT NULL DEFAULT now());
 CREATE INDEX IF NOT EXISTS idx_gifts_creator_status ON gifts(creator_id,status);
 CREATE INDEX IF NOT EXISTS idx_verifications_user_status ON verifications(user_id,status);
+
+CREATE TABLE IF NOT EXISTS refresh_sessions (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash TEXT NOT NULL UNIQUE,
+  expires_at TIMESTAMPTZ NOT NULL,
+  revoked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_refresh_sessions_user_active ON refresh_sessions(user_id,revoked_at);
