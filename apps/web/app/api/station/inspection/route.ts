@@ -1,0 +1,4 @@
+import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {API_BASE,AUTH_COOKIE} from "../../../lib/auth-proxy";
+export async function PATCH(request:Request){const access=(await cookies()).get(AUTH_COOKIE.access)?.value;if(!access)return NextResponse.json({message:"Authentication required"},{status:401});const body=await request.json();const r=await fetch(API_BASE+"/api/station/"+encodeURIComponent(body.giftId)+"/inspection",{method:"PATCH",headers:{authorization:"Bearer "+access,"content-type":"application/json"},body:JSON.stringify({status:body.status,notes:body.notes}),cache:"no-store"});return NextResponse.json(await r.json(),{status:r.status});}
