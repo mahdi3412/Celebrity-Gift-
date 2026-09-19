@@ -43,3 +43,17 @@ CREATE TABLE IF NOT EXISTS platform_thresholds (
 INSERT INTO platform_thresholds(id,public_interest,strong_invite,max_unique_requests_per_fan)
 VALUES(1,100,150,3)
 ON CONFLICT (id) DO NOTHING;
+
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  entity_type TEXT,
+  entity_id TEXT,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications(user_id,read_at,created_at DESC);
