@@ -17,6 +17,6 @@ if(!docTypes.includes(document.mimetype)||!selfieTypes.includes(selfie.mimetype)
 if(document.size>6*1024*1024||selfie.size>6*1024*1024)throw new BadRequestException("Each file must be 6MB or smaller");
 return this.service.submit(req.user.sub,documentType as any,{buffer:document.buffer,fileName:document.originalname,mimeType:document.mimetype},{buffer:selfie.buffer,fileName:selfie.originalname,mimeType:selfie.mimetype});}
  @Roles("admin") @Get("admin/queue") queue(){return this.service.listManualReview();}
- @Roles("admin") @Get("admin/artifacts/:artifactId") @Header("Cache-Control","no-store") async artifact(@Param("artifactId") artifactId:string){const item=await this.service.getArtifactForAdmin(artifactId);return new StreamableFile(item.buffer,{type:item.mimeType,length:item.bytes});}
+ @Roles("admin") @Get("admin/artifacts/:artifactId") @Header("Cache-Control","no-store") async artifact(@Req() req:AuthedRequest,@Param("artifactId") artifactId:string){const item=await this.service.getArtifactForAdmin(artifactId,req.user.sub);return new StreamableFile(item.buffer,{type:item.mimeType,length:item.bytes});}
  @Roles("admin") @Post("review/:userId") review(@Param("userId") userId:string,@Body() dto:ReviewDto){return this.service.review(userId,dto.approved);}
 }
