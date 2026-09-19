@@ -10,12 +10,20 @@ const transitions:Record<GiftStatus,GiftStatus[]>={REQUESTED:["RECEIVED_AT_STATI
 @Injectable()
 export class GiftsService{
  constructor(private readonly db:DatabaseService,private readonly notifications:NotificationsService,private readonly thresholds:ThresholdsService){}
- async create(input:{fanId:string;creatorId:string;category:string;food?:boolean;fragile?:boolean;noteDeclared?:boolean}){
+ async create(input:{fanId:string;creatorId:string;category:string;food?:boolean;fragile?:boolean;noteDeclared?:boolean;foodExpiryAt?:string}){
   if(!input.fanId||!input.creatorId||!input.category)throw new BadRequestException("creatorId and category are required");
+  if(input.food && !input.foodExpiryAt)throw new BadRequestException("Food gifts require expiry date");
   const creator=await this.db.query("SELECT id FROM users WHERE id=$1 AND role='creator'",[input.creatorId]);
   if(!creator.rowCount)throw new BadRequestException("Creator not found");
+  const verified=await this.db.query("SELECT 1 FROM verifications WHERE user_id=$1 AND status='AUTO_VERIFIED' ORDER BY created_at DESC LIMIT 1",[input.fanId]);
+  if(!verified.rowCount)throw new ForbiddenException("Fan verification is required");
+  const creatorVerified=await this.db.query("SELECT 1 FROM verifications WHERE user_id=$1 AND status='AUTO_VERIFIED' ORDER BY created_at DESC LIMIT 1",[input.creatorId]);
+  if(!creatorVerified.rowCount)throw new BadRequestException("Creator is not verified");
+  const config=await this.thresholds.get();
+  const cap=await this.db.query<{count:string}>("SELECT COUNT(*)::text AS count FROM gifts WHERE fan_id=$1 AND creator_id=$2",[input.fanId,input.creatorId]);
+  if(Number(cap.rows[0]?.count??0)>=config.maxUniqueRequestsPerFan)throw new BadRequestException("Maximum gift request limit reached for this creator");
   const code=(await this.db.query<{nextval:string}>("SELECT nextval('gift_code_seq')::text AS nextval")).rows[0].nextval;
-  const result=await this.db.query<Gift>("INSERT INTO gifts(id,gift_code,fan_id,creator_id,category,note_declared,food_declared,fragile_declared) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\"",[randomUUID(),"GFT-"+String(code).padStart(6,"0"),input.fanId,input.creatorId,input.category,Boolean(input.noteDeclared),Boolean(input.food),Boolean(input.fragile)]);
+  const result=await this.db.query<Gift>("INSERT INTO gifts(id,gift_code,fan_id,creator_id,category,note_declared,food_declared,fragile_declared,food_expiry_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\"",[randomUUID(),"GFT-"+String(code).padStart(6,"0"),input.fanId,input.creatorId,input.category,Boolean(input.noteDeclared),Boolean(input.food),Boolean(input.fragile),input.foodExpiryAt?new Date(input.foodExpiryAt):null]);
   const gift=result.rows[0];
   await this.notifications.create({userId:gift.creatorId,type:"GIFT_REQUEST",title:"درخواست هدیه جدید",body:"یک درخواست هدیه برای شما ثبت شده است.",entityType:"gift",entityId:gift.id});
   const metrics=await this.db.query<{uniqueFans:number,totalRequests:number}>("SELECT COUNT(DISTINCT fan_id)::int AS \"uniqueFans\",COUNT(*)::int AS \"totalRequests\" FROM gifts WHERE creator_id=$1",[gift.creatorId]);
@@ -24,7 +32,7 @@ export class GiftsService{
   return {...gift,qrPayload:"celebrity-gift://"+gift.giftCode};
  }
  async getForUser(id:string,userId:string,role:Role){
-  const result=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id::text=$1 OR gift_code=$1 LIMIT 1",[id]);
+  const result=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\",food_expiry_at AS \"foodExpiryAt\",station_received_at AS \"stationReceivedAt\",station_inspection_status AS \"stationInspectionStatus\",station_notes AS \"stationNotes\" FROM gifts WHERE id::text=$1 OR gift_code=$1 LIMIT 1",[id]);
   const gift=result.rows[0];if(!gift)return undefined;
   if(role!=="admin"&&role!=="station_staff"&&gift.fanId!==userId&&gift.creatorId!==userId)throw new ForbiddenException("Gift access denied");
   return {...gift,qrPayload:"celebrity-gift://"+gift.giftCode};
