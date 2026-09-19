@@ -162,3 +162,19 @@ CREATE TABLE IF NOT EXISTS platform_settings (
 INSERT INTO platform_settings(id) VALUES(1) ON CONFLICT(id) DO NOTHING;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE','SUSPENDED'));
 CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+
+CREATE TABLE IF NOT EXISTS risk_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  entity_type TEXT,
+  entity_id TEXT,
+  risk_type TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'MEDIUM' CHECK (severity IN ('LOW','MEDIUM','HIGH','CRITICAL')),
+  reason TEXT NOT NULL,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  resolved_at TIMESTAMPTZ,
+  resolved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_risk_events_unresolved ON risk_events(resolved_at,created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_risk_events_user ON risk_events(user_id,created_at DESC);
