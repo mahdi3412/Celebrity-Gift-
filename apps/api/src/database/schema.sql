@@ -137,3 +137,14 @@ CREATE TABLE IF NOT EXISTS creator_private_addresses (
   encrypted_address TEXT NOT NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS provider_webhook_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  provider TEXT NOT NULL,
+  event_id TEXT NOT NULL,
+  event_type TEXT,
+  received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  processed_at TIMESTAMPTZ,
+  UNIQUE(provider,event_id)
+);
+CREATE INDEX IF NOT EXISTS idx_provider_webhook_events_received ON provider_webhook_events(received_at DESC);
