@@ -1,0 +1,5 @@
+"use client";
+import {useState} from "react";
+export default function Station(){const [id,setId]=useState("");const [msg,setMsg]=useState("");
+async function scan(){if(!id)return;try{const base=process.env.NEXT_PUBLIC_API_URL??"http://localhost:4000";const r=await fetch(base+"/api/station/scan/"+encodeURIComponent(id));const data=await r.json();setMsg(data.sop?"Gift "+data.giftId+": "+data.status+" · "+data.sop:"Gift not found");}catch{setMsg("اتصال به API برقرار نشد.");}}
+return <main className="mx-auto max-w-3xl px-6 py-12"><h1 className="text-3xl font-bold">ایستگاه مرکزی</h1><p className="mt-2 text-neutral-600">اسکن شناسه/QR برای بررسی نگاشت کرییتور و وضعیت هدیه.</p><div className="mt-8 flex gap-3"><input value={id} onChange={e=>setId(e.target.value)} placeholder="GFT-000184" className="flex-1 rounded-xl border p-3"/><button onClick={scan} className="rounded-xl bg-black px-5 text-white">اسکن</button></div>{msg&&<p className="mt-5 rounded-xl bg-white p-4 ring-1 ring-black/5">{msg}</p>}</main>}
