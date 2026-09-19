@@ -1,0 +1,4 @@
+import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {API_BASE,AUTH_COOKIE} from "../../../../../lib/auth-proxy";
+export async function PATCH(request:Request,{params}:{params:Promise<{id:string}>}){const access=(await cookies()).get(AUTH_COOKIE.access)?.value;if(!access)return NextResponse.json({message:"Authentication required"},{status:401});const {id}=await params;const body=await request.json();const action=body.status==="SUSPENDED"?"suspend":"activate";const r=await fetch(API_BASE+"/api/admin/users/"+encodeURIComponent(id)+"/"+action,{method:"PATCH",headers:{authorization:"Bearer "+access},cache:"no-store"});return NextResponse.json(await r.json(),{status:r.status});}
