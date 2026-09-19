@@ -28,7 +28,7 @@
 - [ ] Real KYC provider integration
 - [ ] Private encrypted verification storage
 - [ ] Manual-review admin queue UI
-- [ ] Notifications
+- [x] Persisted in-app notifications API
 - [ ] Courier provider abstraction
 - [ ] Food/expiry operational alerts
 
@@ -41,5 +41,6 @@
 - [ ] Database migration runner for existing environments
 - [x] Web auth proxy with HttpOnly cookies
 - [x] Live creator discovery and creator profile management
+- [x] Web dashboard notification feed
 
 The repository remains intentionally below the production gate until real KYC, encrypted identity storage, operational notifications, testing and deployment controls are complete.
