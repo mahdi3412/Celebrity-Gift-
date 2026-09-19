@@ -1,9 +1,9 @@
 import {Body,Controller,Get,Param,Patch,Post,Req} from "@nestjs/common";
-import {IsBoolean,IsISO8601,IsIn,IsOptional,IsString} from "class-validator";
+import {IsBoolean,IsISO8601,IsOptional,IsString} from "class-validator";
 import {GiftsService,GiftStatus} from "./gifts.service";
 import {AuthedRequest} from "../auth/auth.types";
 import {Roles} from "../auth/roles.decorator";
-class CreateGiftDto{@IsString() creatorId!:string;@IsString() @IsIn(["clothing","book","letter","handmade","food","fragile","other"]) category!:string;@IsOptional()@IsBoolean() food?:boolean;@IsOptional()@IsBoolean() fragile?:boolean;@IsOptional()@IsBoolean() noteDeclared?:boolean;@IsOptional()@IsISO8601() foodExpiryAt?:string;}
+class CreateGiftDto{@IsString() creatorId!:string;@IsString() category!:string;@IsOptional()@IsBoolean() food?:boolean;@IsOptional()@IsBoolean() fragile?:boolean;@IsOptional()@IsBoolean() noteDeclared?:boolean;@IsOptional()@IsISO8601() foodExpiryAt?:string;}
 class StatusDto{@IsIn(["REQUESTED","RECEIVED_AT_STATION","PROCESSING","SHIPPED","DELIVERED","ACCEPTED","DECLINED","RETURNED"]) status!:GiftStatus;}
 @Controller("gifts")
 export class GiftsController{
