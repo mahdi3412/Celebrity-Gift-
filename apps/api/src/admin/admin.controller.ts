@@ -1,6 +1,7 @@
-import {Body,Controller,Get,Param,Patch} from "@nestjs/common";
+import {Body,Controller,Get,Param,Patch,Req} from "@nestjs/common";
 import {IsString} from "class-validator";
 import {Roles} from "../auth/roles.decorator";
+import {AuthedRequest} from "../auth/auth.types";
 import {AdminService} from "./admin.service";
 class InvitationStatusDto{@IsString() status!:string;}
 @Controller("admin")@Roles("admin")
@@ -11,4 +12,6 @@ export class AdminController{
  @Get("gifts") gifts(){return this.service.gifts();}
  @Get("creator-invitations") invitations(){return this.service.invitations();}
  @Patch("creator-invitations/:id/sent") sent(@Param("id") id:string){return this.service.markInvitationSent(id);}
+ @Patch("users/:id/suspend") suspend(@Req() req:AuthedRequest,@Param("id") id:string){return this.service.setUserStatus(id,"SUSPENDED",req.user.sub);}
+ @Patch("users/:id/activate") activate(@Req() req:AuthedRequest,@Param("id") id:string){return this.service.setUserStatus(id,"ACTIVE",req.user.sub);}
 }
