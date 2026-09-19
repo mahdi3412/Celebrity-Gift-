@@ -1,4 +1,1 @@
-import {Global,Module} from "@nestjs/common";
-import {RetentionService} from "./retention.service";
-@Global()@Module({providers:[RetentionService],exports:[RetentionService]})
-export class PrivacyModule{}
+import {Global,Module} from "@nestjs/common";import {RetentionService} from "./retention.service";import {PrivateFieldEncryptionService} from "./private-field-encryption.service";@Global()@Module({providers:[RetentionService,PrivateFieldEncryptionService],exports:[RetentionService,PrivateFieldEncryptionService]})export class PrivacyModule{}
