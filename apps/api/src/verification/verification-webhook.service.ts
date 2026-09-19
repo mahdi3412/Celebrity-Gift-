@@ -3,7 +3,7 @@ import {createHmac,timingSafeEqual} from "crypto";
 import {DatabaseService} from "../database/database.service";
 import {NotificationsService} from "../notifications/notifications.service";
 import {AuditService} from "../audit/audit.service";
-import {VerificationStatus} from "./verification.service";
+import type {VerificationStatus} from "./verification.service";
 
 type ProviderEvent={eventId:string;eventType?:string;providerReference?:string;status?:VerificationStatus;userId?:string};
 
@@ -27,7 +27,6 @@ export class VerificationWebhookService{
   );
   if(!inserted.rowCount)return {ok:true,duplicate:true};
   const mapped=event.status; if(!mapped||!["NOT_STARTED","SUBMITTED","AUTO_VERIFIED","MANUAL_REVIEW","FAILED","RESUBMIT"].includes(mapped)){await this.db.query("UPDATE provider_webhook_events SET processed_at=now() WHERE id=$1",[inserted.rows[0].id]);return {ok:true,ignored:true};}
-  const params=event.providerReference? [mapped,event.providerReference] : [mapped,event.userId];
   const updated=event.providerReference
     ? await this.db.query<{user_id:string,id:string}>("UPDATE verifications SET status=$1,reviewed_at=CASE WHEN $1 IN ('AUTO_VERIFIED','FAILED','RESUBMIT') THEN now() ELSE reviewed_at END WHERE provider_reference=$2 RETURNING user_id,id",[mapped,event.providerReference])
     : await this.db.query<{user_id:string,id:string}>("UPDATE verifications SET status=$1,reviewed_at=CASE WHEN $1 IN ('AUTO_VERIFIED','FAILED','RESUBMIT') THEN now() ELSE reviewed_at END WHERE id=(SELECT id FROM verifications WHERE user_id=$2 ORDER BY created_at DESC LIMIT 1) RETURNING user_id,id",[mapped,event.userId]);
