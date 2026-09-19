@@ -148,3 +148,16 @@ CREATE TABLE IF NOT EXISTS provider_webhook_events (
   UNIQUE(provider,event_id)
 );
 CREATE INDEX IF NOT EXISTS idx_provider_webhook_events_received ON provider_webhook_events(received_at DESC);
+
+CREATE TABLE IF NOT EXISTS platform_settings (
+  id SMALLINT PRIMARY KEY CHECK (id=1),
+  gift_categories JSONB NOT NULL DEFAULT '["clothing","book","letter","handmade","food","fragile","other"]'::jsonb,
+  verification_document_types JSONB NOT NULL DEFAULT '["aadhaar","pan","passport","voter_id","driving_license"]'::jsonb,
+  verification_max_attempts INTEGER NOT NULL DEFAULT 3 CHECK (verification_max_attempts > 0),
+  verification_attempt_window_minutes INTEGER NOT NULL DEFAULT 10 CHECK (verification_attempt_window_minutes > 0),
+  kyc_retention_days INTEGER NOT NULL DEFAULT 30 CHECK (kyc_retention_days > 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+INSERT INTO platform_settings(id) VALUES(1) ON CONFLICT(id) DO NOTHING;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE','SUSPENDED'));
+CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
