@@ -7,5 +7,5 @@ import {ThresholdsModule} from "../thresholds/thresholds.module";
 import {PrivacyModule} from "../privacy/privacy.module";
 import {CreatorPrivateAddressController} from "./creator-private-address.controller";
 import {CreatorPrivateAddressService} from "./creator-private-address.service";
-@Module({imports:[ThresholdsModule,PrivacyModule],controllers:[CreatorsController,CreatorInterestController,CreatorPrivateAddressController],providers:[CreatorsService,CreatorInterestService,CreatorPrivateAddressService],exports:[CreatorsService,CreatorInterestService]})
+@Module({imports:[ThresholdsModule,PrivacyModule],controllers:[CreatorsController,CreatorInterestController,CreatorPrivateAddressController],providers:[CreatorsService,CreatorInterestService,CreatorPrivateAddressService],exports:[CreatorsService,CreatorInterestService,CreatorPrivateAddressService]})
 export class CreatorsModule{}
