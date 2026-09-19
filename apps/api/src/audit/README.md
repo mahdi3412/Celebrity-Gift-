@@ -1,0 +1,1 @@
+Audit events are operational/security records. Never store passwords, access/refresh tokens, government-ID images, face biometrics or full identity-document payloads in audit metadata.
