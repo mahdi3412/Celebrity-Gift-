@@ -1,8 +1,12 @@
 import {BadRequestException,Injectable} from "@nestjs/common";
 import {GiftsService,GiftStatus} from "../gifts/gifts.service";
+import {NotificationsService} from "../notifications/notifications.service";
+import {DatabaseService} from "../database/database.service";
+export type InspectionStatus="PENDING"|"CLEAR"|"DAMAGED"|"SUSPICIOUS"|"REQUIRES_REPACK";
 @Injectable()
 export class StationService{
- constructor(private readonly gifts:GiftsService){}
- async scan(giftId:string){const gift=await this.gifts.get(giftId);if(!gift)throw new BadRequestException("Gift not found");return {giftId:gift.giftCode,verifiedCreatorMapping:true,status:gift.status,foodPriority:gift.food,fragile:gift.fragile,sop:"Inspect external packaging and declarations; do not normally open sealed packages."};}
- async updateStatus(giftId:string,status:GiftStatus){return this.gifts.transition(giftId,status);}
+ constructor(private readonly gifts:GiftsService,private readonly db:DatabaseService,private readonly notifications:NotificationsService){}
+ async scan(giftId:string){const gift:any=await this.gifts.get(giftId);if(!gift)throw new BadRequestException("Gift not found");let foodUrgency="normal";if(gift.food&&gift.foodExpiryAt){const hours=(new Date(gift.foodExpiryAt).getTime()-Date.now())/3600000;foodUrgency=hours<=24?"urgent":hours<=48?"priority":"normal";}return {giftId:gift.giftCode,verifiedCreatorMapping:true,status:gift.status,foodPriority:gift.food,foodUrgency,foodExpiryAt:gift.foodExpiryAt??null,fragile:gift.fragile,inspectionStatus:gift.stationInspectionStatus,sop:"Inspect external packaging and declarations; do not normally open sealed packages."};}
+ async updateStatus(giftId:string,status:GiftStatus,actorId:string){return this.gifts.transitionForUser(giftId,status,actorId,"station_staff");}
+ async inspect(giftId:string,actorId:string,status:InspectionStatus,notes?:string){const result=await this.db.query<any>("UPDATE gifts SET station_inspection_status=$1,station_notes=$2,updated_at=now() WHERE id=$3 OR gift_code=$3 RETURNING id,gift_code AS \"giftCode\",creator_id AS \"creatorId\",station_inspection_status AS \"inspectionStatus\",station_notes AS \"notes\"",[status,notes?.trim()||null,giftId]);if(!result.rowCount)throw new BadRequestException("Gift not found");const gift=result.rows[0];await this.notifications.create({userId:gift.creatorId,type:"STATION_INSPECTION",title:"بررسی ایستگاه به‌روزرسانی شد",body:"وضعیت بسته: "+status,entityType:"gift",entityId:gift.id});return {...gift,actorId};}
 }
