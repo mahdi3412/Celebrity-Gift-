@@ -93,3 +93,30 @@ CREATE TABLE IF NOT EXISTS courier_quotes (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_courier_quotes_gift ON courier_quotes(gift_id,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS creator_targets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  handle TEXT NOT NULL UNIQUE,
+  display_name TEXT NOT NULL,
+  category TEXT,
+  linked_user_id UUID UNIQUE REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS creator_interest_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  creator_target_id UUID NOT NULL REFERENCES creator_targets(id) ON DELETE CASCADE,
+  fan_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  source TEXT NOT NULL DEFAULT 'DISCOVER',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(creator_target_id,fan_id)
+);
+CREATE INDEX IF NOT EXISTS idx_creator_interest_target ON creator_interest_events(creator_target_id,created_at DESC);
+CREATE TABLE IF NOT EXISTS creator_invitations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  creator_target_id UUID NOT NULL REFERENCES creator_targets(id) ON DELETE CASCADE,
+  triggered_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  channel TEXT NOT NULL DEFAULT 'MANUAL',
+  status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING','SENT','ACCEPTED','DECLINED')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  sent_at TIMESTAMPTZ
+);
