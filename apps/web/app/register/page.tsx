@@ -1,0 +1,5 @@
+"use client";
+import {FormEvent,useState} from "react";
+export default function Register(){const [message,setMessage]=useState("");
+async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setMessage("ثبت‌نام دریافت شد. برای استفاده از سرویس، احراز هویت لازم است.");}
+return <main className="mx-auto max-w-lg px-6 py-16"><h1 className="text-3xl font-bold">ساخت حساب</h1><p className="mt-2 text-neutral-600">حساب طرفدار یا کرییتور بسازید. احراز هویت برای استفاده الزامی است.</p><form onSubmit={submit} className="mt-8 space-y-4"><input required placeholder="نام نمایشی" className="w-full rounded-xl border p-3"/><input required type="email" placeholder="ایمیل" className="w-full rounded-xl border p-3"/><input required minLength={10} type="password" placeholder="رمز عبور (حداقل ۱۰ کاراکتر)" className="w-full rounded-xl border p-3"/><select className="w-full rounded-xl border p-3"><option value="fan">طرفدار</option><option value="creator">کرییتور</option></select><button className="w-full rounded-xl bg-black p-3 text-white">ثبت‌نام</button></form>{message&&<p className="mt-4 rounded-xl bg-green-50 p-4">{message}</p>}</main>}
