@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS verification_artifacts (
   sha256 TEXT NOT NULL,
   bytes INTEGER NOT NULL CHECK (bytes > 0),
   mime_type TEXT NOT NULL,
+  delete_after_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_verification_artifacts_verification ON verification_artifacts(verification_id);
