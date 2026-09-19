@@ -1,11 +1,7 @@
 import {Body,Controller,Post} from "@nestjs/common";
-import {IsIn,IsString,MinLength} from "class-validator";
+import {IsEmail,IsIn,IsString,MinLength} from "class-validator";
 import {AuthService} from "./auth.service";
-class DemoLoginDto {
-  @IsString() @MinLength(1) userId!:string;
-  @IsIn(["fan","creator","admin"]) role!:"fan"|"creator"|"admin";
-}
-@Controller("auth") export class AuthController {
-  constructor(private readonly auth:AuthService){}
-  @Post("demo-token") token(@Body() dto:DemoLoginDto){return this.auth.issueDemoToken(dto.userId,dto.role);}
-}
+import {ROLES,Role} from "./auth.constants";
+class RegisterDto{@IsEmail() email!:string;@IsString()@MinLength(12) password!:string;@IsIn([...ROLES]) role!:Role;}
+class LoginDto{@IsEmail() email!:string;@IsString()@MinLength(1) password!:string;}
+@Controller("auth") export class AuthController{constructor(private readonly auth:AuthService){}@Post("register") register(@Body() dto:RegisterDto){return this.auth.register(dto.email,dto.password,dto.role);}@Post("login") login(@Body() dto:LoginDto){return this.auth.login(dto.email,dto.password);}}
