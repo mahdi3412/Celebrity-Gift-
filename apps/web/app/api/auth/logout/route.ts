@@ -1,0 +1,4 @@
+import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {API_BASE,AUTH_COOKIE} from "../../../../lib/auth-proxy";
+export async function POST(){const jar=await cookies();const access=jar.get(AUTH_COOKIE.access)?.value;let upstreamOk=true;if(access){const upstream=await fetch(API_BASE+"/api/auth/logout",{method:"POST",headers:{authorization:"Bearer "+access},cache:"no-store"});upstreamOk=upstream.ok;}const response=NextResponse.json({ok:upstreamOk});response.cookies.set(AUTH_COOKIE.access,"",{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:0});response.cookies.set(AUTH_COOKIE.refresh,"",{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:0});return response;}
