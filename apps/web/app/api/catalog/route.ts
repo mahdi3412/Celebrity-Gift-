@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";
+export async function GET(){const base=process.env.API_URL??process.env.NEXT_PUBLIC_API_URL??"http://localhost:4000";const r=await fetch(base+"/api/catalog",{cache:"no-store"});return NextResponse.json(await r.json(),{status:r.status});}
