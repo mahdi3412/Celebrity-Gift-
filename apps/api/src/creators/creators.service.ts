@@ -11,7 +11,7 @@ export class CreatorsService{
  }
  async findOne(idOrHandle:string){
   const normalized=idOrHandle.startsWith("@")?idOrHandle.slice(1):idOrHandle;
-  const result=await this.db.query<Creator>("SELECT cp.user_id AS id,cp.display_name AS \"displayName\",cp.handle,cp.category,COUNT(DISTINCT g.fan_id)::int AS \"uniqueFans\",COUNT(g.id)::int AS \"totalRequests\" FROM creator_profiles cp JOIN users u ON u.id=cp.user_id LEFT JOIN gifts g ON g.creator_id=cp.user_id WHERE u.role='creator' AND cp.is_public=true AND (cp.user_id=$1 OR cp.handle=$2) GROUP BY cp.user_id,cp.display_name,cp.handle,cp.category LIMIT 1",[normalized,normalized]);
+  const result=await this.db.query<Creator>("SELECT cp.user_id AS id,cp.display_name AS \"displayName\",cp.handle,cp.category,COUNT(DISTINCT g.fan_id)::int AS \"uniqueFans\",COUNT(g.id)::int AS \"totalRequests\" FROM creator_profiles cp JOIN users u ON u.id=cp.user_id LEFT JOIN gifts g ON g.creator_id=cp.user_id WHERE u.role='creator' AND cp.is_public=true AND (cp.user_id::text=$1 OR cp.handle=$2) GROUP BY cp.user_id,cp.display_name,cp.handle,cp.category LIMIT 1",[normalized,normalized]);
   return result.rows[0];
  }
  async updateProfile(userId:string,input:{displayName:string;handle:string;category?:string;publicBio?:string}){
