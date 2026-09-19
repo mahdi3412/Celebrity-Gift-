@@ -121,3 +121,19 @@ CREATE TABLE IF NOT EXISTS creator_invitations (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   sent_at TIMESTAMPTZ
 );
+
+CREATE TABLE IF NOT EXISTS creator_activity_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  creator_target_id UUID NOT NULL REFERENCES creator_targets(id) ON DELETE CASCADE,
+  fan_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  event_type TEXT NOT NULL DEFAULT 'INTEREST_REQUEST',
+  source TEXT NOT NULL DEFAULT 'DISCOVER',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_creator_activity_target_created ON creator_activity_events(creator_target_id,created_at DESC);
+
+CREATE TABLE IF NOT EXISTS creator_private_addresses (
+  creator_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  encrypted_address TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
