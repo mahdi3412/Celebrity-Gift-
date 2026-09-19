@@ -1,5 +1,6 @@
 import {Module} from "@nestjs/common";
 import {CreatorsController} from "./creators.controller";
 import {CreatorsService} from "./creators.service";
-@Module({controllers:[CreatorsController],providers:[CreatorsService],exports:[CreatorsService]})
+import {ThresholdsModule} from "../thresholds/thresholds.module";
+@Module({imports:[ThresholdsModule],controllers:[CreatorsController],providers:[CreatorsService],exports:[CreatorsService]})
 export class CreatorsModule{}
