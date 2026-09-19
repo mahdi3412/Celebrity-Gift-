@@ -21,5 +21,5 @@ export class CreatorsService{
   if(!result.rowCount)throw new NotFoundException("Creator profile not found");
   return result.rows[0];
  }
- private publicView(c:Creator){return {id:c.id,displayName:c.displayName,handle:c.handle,category:c.category,interestIndicator:c.uniqueFans>=150?"دعوت به عضویت پیشنهاد می‌شود":c.uniqueFans>=100?"علاقه عمومی قابل توجه":undefined};}
+ private publicView(c:Creator,publicInterest:number,strongInvite:number){return {id:c.id,displayName:c.displayName,handle:c.handle,category:c.category,interestIndicator:c.uniqueFans>=strongInvite?"دعوت به عضویت پیشنهاد می‌شود":c.uniqueFans>=publicInterest?"علاقه عمومی قابل توجه":undefined};}
 }
