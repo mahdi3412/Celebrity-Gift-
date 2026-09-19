@@ -4,14 +4,17 @@ import {DatabaseService} from "../database/database.service";
 import {Role} from "../auth/auth.constants";
 import {NotificationsService} from "../notifications/notifications.service";
 import {ThresholdsService} from "../thresholds/thresholds.service";
+import {PlatformSettingsService} from "../settings/settings.service";
 export type GiftStatus="REQUESTED"|"RECEIVED_AT_STATION"|"PROCESSING"|"SHIPPED"|"DELIVERED"|"ACCEPTED"|"DECLINED"|"RETURNED";
 export type Gift={id:string;giftCode:string;fanId:string;creatorId:string;category:string;status:GiftStatus;food:boolean;fragile:boolean;noteDeclared:boolean;createdAt:string;foodExpiryAt:string|null;stationReceivedAt:string|null;stationInspectionStatus:string;stationNotes:string|null};
 const transitions:Record<GiftStatus,GiftStatus[]>={REQUESTED:["RECEIVED_AT_STATION"],RECEIVED_AT_STATION:["PROCESSING"],PROCESSING:["SHIPPED"],SHIPPED:["DELIVERED"],DELIVERED:["ACCEPTED","DECLINED","RETURNED"],ACCEPTED:[],DECLINED:["RETURNED"],RETURNED:[]};
 @Injectable()
 export class GiftsService{
- constructor(private readonly db:DatabaseService,private readonly notifications:NotificationsService,private readonly thresholds:ThresholdsService){}
+ constructor(private readonly db:DatabaseService,private readonly notifications:NotificationsService,private readonly thresholds:ThresholdsService,private readonly settings:PlatformSettingsService){}
  async create(input:{fanId:string;creatorId:string;category:string;food?:boolean;fragile?:boolean;noteDeclared?:boolean;foodExpiryAt?:string}){
   if(!input.fanId||!input.creatorId||!input.category)throw new BadRequestException("creatorId and category are required");
+  const settings=await this.settings.get();
+  if(!settings.giftCategories.includes(input.category))throw new BadRequestException("Unsupported gift category");
   if(input.food && !input.foodExpiryAt)throw new BadRequestException("Food gifts require expiry date");
   if(input.food&&input.foodExpiryAt&&new Date(input.foodExpiryAt).getTime()<=Date.now())throw new BadRequestException("Food expiry must be in the future");
   const creator=await this.db.query("SELECT id FROM users WHERE id=$1 AND role='creator'",[input.creatorId]);
