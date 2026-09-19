@@ -1,4 +1,4 @@
-import {Body,Controller,Post,Req} from "@nestjs/common";
+import {Body,Controller,Get,Post,Req} from "@nestjs/common";
 import {Throttle} from "@nestjs/throttler";
 import {IsEmail,IsIn,IsString,MinLength} from "class-validator";
 import {AuthService} from "./auth.service";
@@ -14,5 +14,6 @@ export class AuthController{
  @Public()@Throttle({default:{limit:5,ttl:60000}})@Post("register") register(@Body() dto:RegisterDto){return this.auth.register(dto.email,dto.password,dto.role);}
  @Public()@Throttle({default:{limit:5,ttl:60000}})@Post("login") login(@Body() dto:LoginDto){return this.auth.login(dto.email,dto.password);}
  @Public()@Throttle({default:{limit:10,ttl:60000}})@Post("refresh") refresh(@Body() dto:RefreshDto){return this.auth.refresh(dto.refreshToken);}
+ @Get("me") me(@Req() req:AuthedRequest){return this.auth.me(req.user.sub);}
  @Post("logout") logout(@Req() req:AuthedRequest){return this.auth.logout(req.user.sub,req.user.jti);}
 }
