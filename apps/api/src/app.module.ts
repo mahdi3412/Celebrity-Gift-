@@ -6,6 +6,7 @@ import {CreatorsModule} from "./creators/creators.module";
 import {GiftsModule} from "./gifts/gifts.module";
 import {VerificationModule} from "./verification/verification.module";
 import {StationModule} from "./station/station.module";
+import {ThresholdsModule} from "./thresholds/thresholds.module";
 import {HealthController} from "./health.controller";
 @Module({
   imports:[
@@ -14,7 +15,7 @@ import {HealthController} from "./health.controller";
       API_PORT:Joi.number().default(4000),
       JWT_ACCESS_SECRET:Joi.string().min(32).required()
     })}),
-    AuthModule,CreatorsModule,GiftsModule,VerificationModule,StationModule
+    AuthModule,CreatorsModule,GiftsModule,VerificationModule,StationModule,ThresholdsModule
   ],
   controllers:[HealthController]
 })
