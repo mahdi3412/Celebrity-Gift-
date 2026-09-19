@@ -17,13 +17,13 @@ export class GiftsService{
   const gift=result.rows[0];return {...gift,qrPayload:"celebrity-gift://"+gift.giftCode};
  }
  async getForUser(id:string,userId:string,role:Role){
-  const result=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id=$1 OR gift_code=$1 LIMIT 1",[id]);
+  const result=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id::text=$1 OR gift_code=$1 LIMIT 1",[id]);
   const gift=result.rows[0];if(!gift)return undefined;
   if(role!=="admin"&&role!=="station_staff"&&gift.fanId!==userId&&gift.creatorId!==userId)throw new ForbiddenException("Gift access denied");
   return {...gift,qrPayload:"celebrity-gift://"+gift.giftCode};
  }
  async transitionForUser(id:string,status:GiftStatus,userId:string,role:Role){
-  const result=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id=$1 OR gift_code=$1 LIMIT 1",[id]);
+  const result=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id::text=$1 OR gift_code=$1 LIMIT 1",[id]);
   const gift=result.rows[0];if(!gift)throw new NotFoundException("Gift not found");
   const stationStatuses:GiftStatus[]=["RECEIVED_AT_STATION","PROCESSING","SHIPPED","DELIVERED"];
   const creatorStatuses:GiftStatus[]=["ACCEPTED","DECLINED","RETURNED"];
@@ -33,6 +33,6 @@ export class GiftsService{
   const updated=await this.db.query<Gift>("UPDATE gifts SET status=$1,updated_at=now() WHERE id=$2 RETURNING id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\"",[status,gift.id]);
   return updated.rows[0];
  }
- async get(id:string){const r=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id=$1 OR gift_code=$1 LIMIT 1",[id]);return r.rows[0];}
+ async get(id:string){const r=await this.db.query<Gift>("SELECT id,gift_code AS \"giftCode\",fan_id AS \"fanId\",creator_id AS \"creatorId\",category,status,food_declared AS food,fragile_declared AS fragile,note_declared AS \"noteDeclared\",created_at AS \"createdAt\" FROM gifts WHERE id::text=$1 OR gift_code=$1 LIMIT 1",[id]);return r.rows[0];}
  async transition(id:string,status:GiftStatus){const r=await this.db.query<Gift>("UPDATE gifts SET status=$1,updated_at=now() WHERE id=$2 RETURNING *",[status,id]);if(!r.rowCount)throw new NotFoundException("Gift not found");return r.rows[0];}
 }
