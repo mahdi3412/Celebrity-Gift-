@@ -31,3 +31,15 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_created ON audit_logs(actor_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_action_created ON audit_logs(action,created_at DESC);
+
+
+CREATE TABLE IF NOT EXISTS platform_thresholds (
+  id SMALLINT PRIMARY KEY CHECK (id=1),
+  public_interest INTEGER NOT NULL CHECK (public_interest > 0),
+  strong_invite INTEGER NOT NULL CHECK (strong_invite >= public_interest),
+  max_unique_requests_per_fan INTEGER NOT NULL CHECK (max_unique_requests_per_fan > 0),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+INSERT INTO platform_thresholds(id,public_interest,strong_invite,max_unique_requests_per_fan)
+VALUES(1,100,150,3)
+ON CONFLICT (id) DO NOTHING;
