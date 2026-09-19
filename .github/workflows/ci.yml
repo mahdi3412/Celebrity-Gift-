@@ -3,6 +3,9 @@ on:
   push:
     branches: [main]
   pull_request:
+concurrency:
+  group: celebrity-gift-ci-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
