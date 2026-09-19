@@ -1,5 +1,5 @@
 import {Body,Controller,Get,Param,Patch,Post,Req} from "@nestjs/common";
-import {IsBoolean,IsISO8601,IsInt,IsOptional,IsString,Max,Min,MaxLength} from "class-validator";
+import {IsBoolean,IsISO8601,IsIn,IsInt,IsOptional,IsString,Max,Min,MaxLength} from "class-validator";
 import {GiftsService,GiftStatus} from "./gifts.service";
 import {AuthedRequest} from "../auth/auth.types";
 import {Roles} from "../auth/roles.decorator";
