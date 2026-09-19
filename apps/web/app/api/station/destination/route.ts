@@ -1,0 +1,4 @@
+import {NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {API_BASE,AUTH_COOKIE} from "../../../../lib/auth-proxy";
+export async function GET(request:Request){const access=(await cookies()).get(AUTH_COOKIE.access)?.value;if(!access)return NextResponse.json({message:"Authentication required"},{status:401});const id=new URL(request.url).searchParams.get("giftId")??"";if(!id)return NextResponse.json({message:"giftId is required"},{status:400});const r=await fetch(API_BASE+"/api/station/destination/"+encodeURIComponent(id),{headers:{authorization:"Bearer "+access},cache:"no-store"});return NextResponse.json(await r.json(),{status:r.status});}
